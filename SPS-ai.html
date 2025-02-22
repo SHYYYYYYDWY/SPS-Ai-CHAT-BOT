@@ -31,11 +31,12 @@
             flex-direction: column;
             border: 2px solid #641ad0;
             height: 90vh; /* Fixed height for container */
+            position: relative; /* To position the floating button inside */
         }
 
         /* Top Bar Styling */
         .top-bar {
-            position: sticky;
+            position: sticky; /* Freeze the top bar */
             top: 0;
             background: linear-gradient(90deg, #641ad0, #2d6af7);
             color: #fff;
@@ -59,6 +60,30 @@
             letter-spacing: 0.5px;
         }
 
+        /* Floating New Chat Button */
+        .new-chat-button {
+            position: absolute;
+            bottom: 100px; /* Moved up by ~0.5 inch (approx. 30px) */
+            right: 20px;
+            padding: 10px;
+            background: linear-gradient(90deg, #641ad0, #2d6af7);
+            color: #fff;
+            border: none;
+            border-radius: 50%; /* Circular button */
+            cursor: pointer;
+            font-size: 18px;
+            width: 40px; /* Small size */
+            height: 40px; /* Small size */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        .new-chat-button:hover {
+            opacity: 0.9;
+        }
+
         /* AdSense Banner */
         .adsense-banner {
             text-align: center;
@@ -71,7 +96,7 @@
         .chat-box {
             flex: 1;
             padding: 20px;
-            overflow-y: auto;
+            overflow-y: auto; /* Make chat box scrollable */
             background: linear-gradient(135deg, #f8f8f8, #ffffff);
             max-height: calc(90vh - 240px); /* Adjusted height for chat box */
             scroll-behavior: smooth;
@@ -207,6 +232,7 @@
 </head>
 <body>
     <div class="chat-container">
+        <!-- Top Bar (Frozen/Sticky) -->
         <div class="top-bar">
             <h1>Shubhendra Pratap Singh</h1>
             <p>SPS Ai CHAT BOT</p>
@@ -227,8 +253,14 @@
             </script>
         </div>
 
+        <!-- Chat Box -->
         <div class="chat-box" id="chatBox">
         </div>
+
+        <!-- Floating New Chat Button -->
+        <button class="new-chat-button" onclick="startNewChat()">+</button>
+
+        <!-- Chat Input -->
         <div class="chat-input">
             <input type="text" id="userInput" placeholder="Type a message..." />
             <button onclick="sendMessage()">Send</button>
@@ -242,6 +274,8 @@
         const chatBox = document.getElementById('chatBox');
         const userInput = document.getElementById('userInput');
 
+        let context = []; // To store conversation history for contextual understanding
+
         function appendMessage(sender, message) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message', sender);
@@ -252,30 +286,31 @@
             if (sender === 'bot') {
                 const audioButton = document.createElement('div');
                 audioButton.classList.add('audio-feedback');
-                audioButton.innerHTML = `<button onclick="speakText('${message}')">🔊</button>`; // Speaker icon
+                audioButton.innerHTML = `<button onclick="speakText('${encodeURIComponent(message)}')">🔊</button>`; // Speaker icon
                 chatBox.appendChild(audioButton);
             }
 
-            chatBox.scrollTop = chatBox.scrollHeight;
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the latest message
         }
 
         async function sendMessage() {
             const userMessage = userInput.value.trim();
             if (!userMessage) return;
 
-            // Append user message
+            // Append user message and add to context
             appendMessage('user', userMessage);
+            context.push({ role: "user", content: userMessage });
             userInput.value = '';
 
-            // Show typing indicator immediately after user message
-            const typingIndicator = document.createElement('div');
-            typingIndicator.classList.add('typing-indicator');
-            typingIndicator.innerText = 'टाइप कर रहा हूँ...';
-            typingIndicator.style.display = 'block';
-            chatBox.appendChild(typingIndicator);
-            chatBox.scrollTop = chatBox.scrollHeight;
-
             try {
+                // Show typing indicator immediately after user message
+                const typingIndicator = document.createElement('div');
+                typingIndicator.classList.add('typing-indicator');
+                typingIndicator.innerText = 'टाइप कर रहा हूँ...';
+                typingIndicator.style.display = 'block';
+                chatBox.appendChild(typingIndicator);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
                 // Simulate a delay for typing effect
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -290,6 +325,7 @@
                     body: JSON.stringify({
                         "model": "qwen/qwen2.5-vl-72b-instruct:free",
                         "messages": [
+                            ...context, // Include previous messages for context
                             {
                                 "role": "user",
                                 "content": [
@@ -314,8 +350,9 @@
                     // Remove typing indicator
                     chatBox.removeChild(typingIndicator);
 
-                    // Append bot message
+                    // Append bot message and add to context
                     appendMessage('bot', botMessage);
+                    context.push({ role: "bot", content: botMessage });
                 } else {
                     // Remove typing indicator
                     chatBox.removeChild(typingIndicator);
@@ -335,10 +372,17 @@
         }
 
         // Function to speak text using Web Speech API
-        function speakText(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
+        function speakText(encodedText) {
+            const decodedText = decodeURIComponent(encodedText); // Decode the text
+            const utterance = new SpeechSynthesisUtterance(decodedText);
             utterance.lang = 'hi-IN'; // Default language is Hindi
             speechSynthesis.speak(utterance);
+        }
+
+        // Function to start a new chat
+        function startNewChat() {
+            chatBox.innerHTML = ''; // Clear chat box
+            context = []; // Reset conversation history
         }
 
         userInput.addEventListener('keypress', function (e) {
