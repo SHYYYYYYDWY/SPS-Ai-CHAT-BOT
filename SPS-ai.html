@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPS Chatbot</title>
+    <style>
+        /* General Body Styling */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #641ad0, #2d6af7);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Chat Container Styling */
+        .chat-container {
+            width: 90%;
+            max-width: 400px;
+            background-color: #ffffff;
+            border-radius: 40px; /* Fully rounded corners for the container */
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #641ad0;
+            height: 90vh; /* Fixed height for container */
+        }
+
+        /* Top Bar Styling */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(90deg, #641ad0, #2d6af7);
+            color: #fff;
+            padding: 16px;
+            text-align: center;
+            border-bottom: 2px solid #fff;
+            z-index: 10;
+            border-radius: 40px 40px 0 0; /* Rounded corners for top bar */
+        }
+        .top-bar h1 {
+            font-size: 20px;
+            margin: 0;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .top-bar p {
+            font-size: 14px;
+            margin: 4px 0 0;
+            font-weight: normal;
+            letter-spacing: 0.5px;
+        }
+
+        /* AdSense Banner */
+        .adsense-banner {
+            text-align: center;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* Chat Box Styling */
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(135deg, #f8f8f8, #ffffff);
+            max-height: calc(90vh - 240px); /* Adjusted height for chat box */
+            scroll-behavior: smooth;
+            border-radius: 0 0 40px 40px; /* Rounded corners for bottom */
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            text-align: left;
+            margin-bottom: 12px;
+            color: #aaa;
+            font-size: 14px;
+            display: none;
+        }
+
+        /* Audio Feedback Button */
+        .audio-feedback {
+            text-align: left;
+            margin-top: 8px;
+        }
+        .audio-feedback button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: #641ad0;
+        }
+
+        /* Chat Input Styling */
+        .chat-input {
+            display: flex;
+            padding: 14px;
+            background-color: #f8f8f8;
+            border-top: 2px solid #e0e0e0;
+            border-radius: 0 0 40px 40px; /* Rounded corners for input area */
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 32px;
+            outline: none;
+            font-size: 16px;
+            background-color: #ffffff;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            max-width: calc(100% - 100px); /* Fixed size for input */
+        }
+        .chat-input input:focus {
+            box-shadow: 0 4px 12px rgba(100, 26, 208, 0.2);
+        }
+        .chat-input button {
+            padding: 14px 24px;
+            margin-left: 10px;
+            background: linear-gradient(90deg, #641ad0, #2d6af7);
+            color: #fff;
+            border: none;
+            border-radius: 32px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .chat-input button:hover {
+            opacity: 0.9;
+        }
+
+        /* Message Styling */
+        .message.user {
+            text-align: right;
+            margin-bottom: 12px;
+        }
+        .message.bot {
+            text-align: left;
+            margin-bottom: 12px;
+        }
+        .message.user span {
+            background: linear-gradient(90deg, #641ad0, #2d6af7);
+            padding: 14px 20px;
+            border-radius: 24px;
+            color: #fff;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .message.bot span {
+            background-color: #f0f0f0;
+            padding: 14px 20px;
+            border-radius: 24px;
+            color: #333;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #641ad0;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f8f8f8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .chat-container {
+                width: 100%;
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+            }
+            .top-bar {
+                padding: 12px;
+            }
+            .top-bar h1 {
+                font-size: 18px;
+            }
+            .top-bar p {
+                font-size: 12px;
+            }
+            .chat-input input {
+                font-size: 14px;
+                padding: 12px;
+            }
+            .chat-input button {
+                font-size: 14px;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="top-bar">
+            <h1>Shubhendra Pratap Singh</h1>
+            <p>SPS Ai CHAT BOT</p>
+        </div>
+
+        <!-- AdSense Banner -->
+        <div class="adsense-banner">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_ADSENSE_ID"
+                crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-format="auto"
+                data-full-width-responsive="true"
+                data-ad-client="ca-pub-YOUR_ADSENSE_ID"
+                data-ad-slot="YOUR_AD_SLOT_ID"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
+        <div class="chat-box" id="chatBox">
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Type a message..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const OPENROUTER_API_KEY = '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'; // Replace with your actual OpenRouter API key
+        const YOUR_SITE_URL = 'https://your-site-url.com'; // Replace with your site URL
+        const YOUR_SITE_NAME = 'Your Site Name'; // Replace with your site name
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+
+        function appendMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            messageElement.innerHTML = `<span>${message}</span>`;
+            chatBox.appendChild(messageElement);
+
+            // Add audio feedback button if it's a bot message
+            if (sender === 'bot') {
+                const audioButton = document.createElement('div');
+                audioButton.classList.add('audio-feedback');
+                audioButton.innerHTML = `<button onclick="speakText('${message}')">🔊</button>`; // Speaker icon
+                chatBox.appendChild(audioButton);
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
+
+            // Append user message
+            appendMessage('user', userMessage);
+            userInput.value = '';
+
+            // Show typing indicator immediately after user message
+            const typingIndicator = document.createElement('div');
+            typingIndicator.classList.add('typing-indicator');
+            typingIndicator.innerText = 'टाइप कर रहा हूँ...';
+            typingIndicator.style.display = 'block';
+            chatBox.appendChild(typingIndicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // Simulate a delay for typing effect
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                        "HTTP-Referer": YOUR_SITE_URL,
+                        "X-Title": YOUR_SITE_NAME,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "model": "qwen/qwen2.5-vl-72b-instruct:free",
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": `हिंदी में जवाब दीजिए: ${userMessage}`
+                                    }
+                                ]
+                            }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                if (data && data.choices && data.choices[0].message && data.choices[0].message.content) {
+                    const botMessage = data.choices[0].message.content;
+
+                    // Remove typing indicator
+                    chatBox.removeChild(typingIndicator);
+
+                    // Append bot message
+                    appendMessage('bot', botMessage);
+                } else {
+                    // Remove typing indicator
+                    chatBox.removeChild(typingIndicator);
+
+                    // Append error message
+                    appendMessage('bot', 'माफ़ कीजिए, मैं आपके अनुरोध को प्रोसेस नहीं कर पाया।');
+                }
+            } catch (error) {
+                console.error('OpenRouter API से संचार करते समय त्रुटि:', error);
+
+                // Remove typing indicator
+                chatBox.removeChild(typingIndicator);
+
+                // Append error message
+                appendMessage('bot', 'क्षमा करें, कुछ गलत हो गया है। कृपया पुनः प्रयास करें।');
+            }
+        }
+
+        // Function to speak text using Web Speech API
+        function speakText(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'hi-IN'; // Default language is Hindi
+            speechSynthesis.speak(utterance);
+        }
+
+        userInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
